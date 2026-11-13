@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Radar Local</title>
+<style>
+:root{font:16px system-ui;color:#172c26;background:#eef2ee;--ink:#172c26;--muted:#50635a;--green:#206848;--line:#d4dfd7}
+*{box-sizing:border-box}body{margin:0}header{background:#102e23;color:white}header div,main{max-width:1120px;margin:auto;padding:24px}header div{display:flex;align-items:center;justify-content:space-between;gap:14px}strong.brand{font-size:1.2rem;letter-spacing:-.02em}header a{color:#d8eadf}h1{font-size:clamp(2rem,6vw,3.7rem);line-height:1;letter-spacing:-.065em;margin:28px 0 10px}h2{margin:0;font-size:1.28rem}p{line-height:1.55;color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-top:28px}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px}.split{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-size:.9rem;font-weight:650;margin:13px 0 5px}input,select,textarea,button{font:inherit;border-radius:9px;min-height:44px}input:not([type=checkbox]),select,textarea{width:100%;border:1px solid #a6baad;padding:9px 11px;color:var(--ink);background:#fff}textarea{min-height:180px;resize:vertical}button{border:1px solid transparent;padding:9px 14px;font-weight:650;cursor:pointer;background:var(--green);color:white}button.secondary{background:#e8f2eb;color:#174531;border-color:#d1e0d5}button:disabled{opacity:.55;cursor:default}a{color:#1b6141}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #cb8b28;outline-offset:2px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.status{margin:12px 0 0;min-height:1.5em;font-size:.9rem}.results{margin-top:16px;background:#f5f8f5;border:1px solid var(--line);border-radius:12px;padding:12px}.result{padding:12px 2px;border-bottom:1px solid var(--line)}.result p{margin:4px 0;font-size:.88rem}.result a{display:inline-flex;align-items:center;min-height:44px}.attribution{white-space:nowrap;color:#5e5e5e;font:14px Roboto,Arial,sans-serif}.check{display:flex;align-items:center;gap:8px}.check input{min-height:24px;width:20px;flex-shrink:0}.note{font-size:.87rem}details{margin-top:24px}summary{cursor:pointer;font-weight:650;padding:12px 0}[hidden]{display:none!important}@media(max-width:770px){.grid{grid-template-columns:1fr}main,header div{padding:16px}}@media(max-width:370px){.split{grid-template-columns:1fr}}
+</style>
+<header><div><strong class="brand">Radar Local</strong><nav><a href="/api/login">Entrar</a> · <a href="#config">Configuração</a></nav></div></header>
+<main>
+<h1>Prospecção local</h1>
+<p>Encontre empresas sem site cadastrado e prepare uma mensagem no idioma de cada mercado.</p>
+<div class="grid">
+<section class="card" aria-labelledby="search-title">
+<h2 id="search-title">Buscar empresas</h2>
+<form id="search">
+<label for="region">Mercado</label><select id="region"><option value="PT">Portugal</option><option value="US">Estados Unidos</option></select>
+<div class="split"><div><label for="city">Cidade</label><input id="city" required maxlength="110" value="Lisboa"></div><div><label for="category">Segmento</label><input id="category" required maxlength="90" value="cabeleireiros"></div></div>
+<div class="actions"><button id="searchBtn">Buscar no Google Maps</button><button type="button" class="secondary" id="more" hidden>Próxima página</button></div>
+</form>
+<p class="status" id="searchStatus" role="status"></p>
+<div id="results" class="results" hidden><span class="attribution" translate="no">Google Maps</span><div id="items"></div></div>
+<p class="note">Confirme se a empresa tem site antes de escrever. O Maps não fornece o email de contacto.</p>
+</section>
+<section class="card" aria-labelledby="mail-title">
+<h2 id="mail-title">Preparar email</h2>
+<p class="status" id="gmailStatus" role="status"></p>
+<div class="actions"><button type="button" class="secondary" id="connect">Ligar Gmail</button><button type="button" class="secondary" id="disconnect" hidden>Desligar Gmail</button></div>
+<form id="mail">
+<div class="split"><div><label for="company">Empresa</label><input id="company" maxlength="150" placeholder="Nome confirmado"></div><div><label for="market">Idioma</label><select id="market"><option value="PT">Português (Portugal)</option><option value="US">Inglês (EUA)</option></select></div></div>
+<label for="detail">Detalhe para personalizar (opcional)</label><input id="detail" maxlength="220" placeholder="Ex.: disponibilizam marcações por telefone">
+<div class="actions"><button type="button" class="secondary" id="draft">Gerar mensagem</button></div>
+<label for="to">Email do destinatário</label><input type="email" id="to" maxlength="254" autocomplete="off" required>
+<label for="subject">Assunto</label><input id="subject" maxlength="140" required>
+<label for="message">Mensagem</label><textarea id="message" maxlength="5000" required></textarea>
+<div class="split"><div><label for="sender">Seu nome ou empresa</label><input id="sender" maxlength="150" required></div><div><label for="address">Seu endereço postal</label><input id="address" maxlength="240" required></div></div>
+<p class="note">O envio inclui a sua assinatura, o endereço postal e instruções para cancelar o contacto por resposta.</p>
+<label class="check"><input id="consent" type="checkbox" required> O destinatário autorizou este contacto e não pediu a remoção.</label>
+<div class="actions"><button id="send" disabled>Enviar pelo Gmail</button></div>
+<p id="mailStatus" class="status" role="status"></p>
+</form>
+</section>
+</div>
+<details id="config"><summary>Configuração e privacidade</summary><p>Siga o README do projeto para ativar a Places API e autorizar a Gmail API. A pesquisa é processada pelo Google. Os resultados são exibidos durante a consulta. A sessão do Gmail fica num cookie cifrado da sessão e a mensagem enviada fica na sua conta Gmail.</p><p><a href="https://policies.google.com/terms">Termos do Google</a> · <a href="https://policies.google.com/privacy">Privacidade do Google</a></p></details>
+</main>
+<script>
+const el = id => document.getElementById(id);
+const val = id => el(id).value.trim();
+let config = {}, next, query;
+async function api(path, payload) {
+  const options = payload === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json','X-CSRF-Token':config.csrf}, body:JSON.stringify(payload)};
+  const response = await fetch('/api/' + path, options);
+  if (response.status === 401 && path === 'status') throw new Error('Clique em Entrar e use a senha do painel.');
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error);
+  return result;
+}
+async function status() {
+  config = await api('status');
+  el('gmailStatus').textContent = config.error || (config.connected ? 'Gmail ligado.' : config.gmail ? 'Autorize o envio com a sua conta Google.' : 'Gmail por configurar. Consulte o README.');
+  el('connect').hidden = config.connected;
+  el('connect').disabled = !config.gmail;
+  el('disconnect').hidden = !config.connected;
+  el('send').disabled = !config.connected;
+  if (!config.maps) el('searchStatus').textContent = 'Google Maps por configurar. Consulte o README.';
+}
+el('region').onchange = () => {
+  const us = val('region') === 'US';
+  el('city').value = us ? 'Miami, FL' : 'Lisboa';
+  el('category').value = us ? 'barbershops' : 'cabeleireiros';
+  el('market').value = val('region');
+  el('more').hidden = true;
+  el('results').hidden = true;
+  el('searchStatus').textContent = '';
+};
+function link(parent, href, text) {
+  try {
+    if (new URL(href).protocol !== 'https:') return;
+    const a = document.createElement('a');
+    a.href = href; a.textContent = text; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    parent.append(a);
+  } catch {}
+}
+async function search(paginate) {
+  if (!paginate) query = {region:val('region'), city:val('city'), category:val('category')};
+  const form = [...el('search').elements];
+  form.forEach(control => control.disabled = true);
+  el('searchStatus').textContent = 'A pesquisar…';
+  el('results').hidden = true;
+  el('more').hidden = true;
+  try {
+    const data = await api('search', {...query, next:paginate ? next : undefined});
+    next = data.next;
+    el('more').hidden = !next;
+    el('items').replaceChildren();
+    for (const place of data.places) {
+      const row = document.createElement('article'); row.className = 'result';
+      const title = document.createElement('strong'); title.textContent = place.name;
+      const address = document.createElement('p'); address.textContent = place.address;
+      row.append(title, address);
+      link(row, place.maps, 'Abrir no Maps ↗');
+      for (const attribution of place.attributions) {
+        const credit = document.createElement('p');
+        credit.textContent = attribution.provider || '';
+        link(credit, attribution.providerUri, ' Fonte ↗');
+        row.append(credit);
+      }
+      el('items').append(row);
+    }
+    el('results').hidden = !data.places.length;
+    el('searchStatus').textContent = data.places.length ? data.places.length + ' empresa(s) sem site cadastrado nesta página.' : 'Nenhuma empresa sem site cadastrado nesta página.';
+  } catch (err) { el('searchStatus').textContent = err.message; }
+  finally { form.forEach(control => control.disabled = false); }
+}
+el('search').onsubmit = event => {event.preventDefault(); search(false);};
+el('more').onclick = () => search(true);
+for (const id of ['city','category']) el(id).oninput = () => {el('more').hidden = true;};
+el('connect').onclick = async () => {
+  el('connect').disabled = true;
+  try { location.assign((await api('connect', {})).url); }
+  catch (err) {el('gmailStatus').textContent = err.message; el('connect').disabled = false;}
+};
+el('disconnect').onclick = async () => {
+  try {await api('disconnect', {}); await status();}
+  catch (err) {el('gmailStatus').textContent = err.message;}
+};
+el('draft').onclick = () => {
+  const company = val('company');
+  const detail = val('detail');
+  if (!company) {el('mailStatus').textContent = 'Indique o nome da empresa para personalizar a mensagem.'; el('company').focus(); return;}
+  const us = val('market') === 'US';
+  el('subject').value = (us ? 'A website idea for ' : 'Uma ideia de site para ') + company.slice(0, 110);
+  el('message').value = us
+    ? ['Hello, ' + company + ' team,', detail || null, 'I build websites for local businesses. I have an idea for a simple page where customers can find your services and get in touch.', 'Would you like me to send you a short proposal?'].filter(Boolean).join('\n\n')
+    : ['Olá, equipa da ' + company + ',', detail || null, 'Crio sites para negócios locais. Tenho uma ideia para uma página simples onde os clientes possam consultar os vossos serviços e entrar em contacto.', 'Posso enviar-vos uma breve proposta?'].filter(Boolean).join('\n\n');
+  el('mailStatus').textContent = 'Mensagem pronta para rever.';
+};
+el('to').oninput = () => {el('consent').checked = false;};
+el('mail').onsubmit = async event => {
+  event.preventDefault();
+  const data = {to:val('to'), subject:val('subject'), message:val('message'), sender:val('sender'), address:val('address'), region:val('market'), consent:el('consent').checked};
+  el('send').disabled = true;
+  el('mailStatus').textContent = 'A enviar…';
+  try {
+    await api('send', data);
+    el('mailStatus').textContent = 'Mensagem enviada para ' + data.to + '.';
+    el('consent').checked = false;
+  } catch (err) {el('mailStatus').textContent = err.message;}
+  finally {el('send').disabled = !config.connected;}
+};
+status().catch(err => {el('gmailStatus').textContent = err.message; el('searchStatus').textContent = err.message; el('connect').disabled = true;});
+</script>
+</html>
